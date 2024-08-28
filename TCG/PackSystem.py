@@ -9,36 +9,33 @@ from .CardsMain import get_db_connection
 class PackSystem(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.temporary_boosts = {}  # Store user-specific boosts
 
     packs = {
         "moonbreon": {
             "price": 200,
             "cards": [
-                {"name": "Energy", "hit_percentage": 55, "price": 5, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686610288185354/energy.png"},
-                {"name": "Eevee", "hit_percentage": 42, "price": 10, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686626973253672/eevee.png"},
-                {"name": "Umbreon V", "hit_percentage": 1, "price": 1000, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686674335465644/UmbreonV1.png"},
-                {"name": "Umbreon VMax", "hit_percentage": 5, "price": 2000, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686754794541076/UmbreonVMAX0.2.png"},
-                {"name": "Umbreon GX", "hit_percentage": 2, "price": 500, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686788793696296/UmbreonGX0.5.png"},
-                {"name": "Umbreon GX", "hit_percentage": 1, "price": 150, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686817717485618/UmbreonGX0.15.png"},
-                {"name": "Umbreon V", "hit_percentage": 0.5, "price": 150, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277688032526602464/UmbreonV0.15.png"},
-                {"name": "Umbreon V", "hit_percentage": 0.25, "price": 150, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686871836725330/UmbreonV0.15_4k.png"},
-                {"name": "Umbreon VMAX", "hit_percentage": 0.25, "price": 1000, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686909359095858/UmbreonVMAX0.1.png"},
-                {"name": "Umbreon VMAX", "hit_percentage": 0.02, "price": 2000, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686909359095858/UmbreonVMAX0.1.png"},
-                {"name": "Umbreon GX", "hit_percentage": 0.02, "price": 2000, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686947397111908/UmbreonGX0.02.png"},
-                {"name": "Umbreon VMAX", "hit_percentage": 0.01, "price": 3000, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686966577659915/MoonbreonVMAX0.001.png"}
+                {"name": "Energy", "hit_percentage": 55, "price": 10, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686610288185354/energy.png?ex=66ce11e2&is=66ccc062&hm=088ac34ae3e9de494c94b75d45e3ba34feb18c3bde7409b7c8767336ef9542ea&=&format=webp&quality=lossless&width=281&height=394"},
+                {"name": "Eevee", "hit_percentage": 42, "price": 20, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686626973253672/eevee.png?ex=66ce11e6&is=66ccc066&hm=8eae8212655a3fcea4f8e426d0e446e4176899501c7de982016e5757fe56507e&=&format=webp&quality=lossless&width=281&height=391"},
+                {"name": "Umbreon V", "hit_percentage": 1, "price": 200, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686674335465644/UmbreonV1.png?ex=66ce11f1&is=66ccc071&hm=62d6b0b2b4aa33d1983a147c805f70a87f0fbb33b3d9d0974bf5966bcf18e996&=&format=webp&quality=lossless&width=281&height=391"},
+                {"name": "Umbreon VMax", "hit_percentage": 0.2, "price": 500, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686754794541076/UmbreonVMAX0.2.png?ex=66ce1204&is=66ccc084&hm=6683428560fe68bd7c1ca93deef0d98f30ec24d31678bc328fd716b07277b5eb&=&format=webp&quality=lossless&width=281&height=391"},
+                {"name": "Umbreon GX", "hit_percentage": 0.5, "price": 100, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686788793696296/UmbreonGX0.5.png?ex=66ce120c&is=66ccc08c&hm=7c2a00c8474654d1107ff7b9b4761136a0d4dcc931a54e5a3b9730df23d8a394&=&format=webp&quality=lossless&width=276&height=385"},
+                {"name": "Umbreon GX", "hit_percentage": 0.15, "price": 150, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686817717485618/UmbreonGX0.15.png?ex=66ce1213&is=66ccc093&hm=d381f85a4a609896f5e9cbfe5585ed8bbb32eedb281351cb238d7726dd158537&=&format=webp&quality=lossless&width=281&height=392"},
+                {"name": "Umbreon V", "hit_percentage": 0.15, "price": 150, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277688032526602464/UmbreonV0.15.png?ex=66ce1335&is=66ccc1b5&hm=86fb16d219c26689abcb848efe548d6925c6774943a624a8e16d5b5b680c9065&=&format=webp&quality=lossless&width=281&height=392"},
+                {"name": "Umbreon V", "hit_percentage": 0.15, "price": 150, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686871836725330/UmbreonV0.15_4k.png?ex=66ce1220&is=66ccc0a0&hm=5214134d6b16c70c2ceeacf8931428731413927c11ed0ddb2da389e21f743d73&=&format=webp&quality=lossless&width=281&height=391"},
+                {"name": "Umbreon VMAX", "hit_percentage": 0.1, "price": 300, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686909359095858/UmbreonVMAX0.1.png?ex=66ce1229&is=66ccc0a9&hm=5c7616ca23552983e99d71e9fc9f1b1b72871b9069ec6a214796ef5e762311a5&=&format=webp&quality=lossless&width=281&height=392"},
+                {"name": "Umbreon VMAX", "hit_percentage": 0.02, "price": 1000, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686909359095858/UmbreonVMAX0.1.png?ex=66ce1229&is=66ccc0a9&hm=5c7616ca23552983e99d71e9fc9f1b1b72871b9069ec6a214796ef5e762311a5&=&format=webp&quality=lossless&width=281&height=392"},
+                {"name": "Umbreon GX", "hit_percentage": 0.02, "price": 800, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686947397111908/UmbreonGX0.02.png?ex=66ce1232&is=66ccc0b2&hm=da5c4fb3ae559b27644f5af9079e70e93307c070877a6543e4a536de46633855&=&format=webp&quality=lossless&width=281&height=392"},
+                {"name": "Umbreon VMAX", "hit_percentage": 0.01, "price": 1200, "image_url": "https://media.discordapp.net/attachments/1277686502335447171/1277686966577659915/MoonbreonVMAX0.001.png?ex=66ce1237&is=66ccc0b7&hm=a4de99911ef1ffef5e08207a8a76cf4f14314e62a2d1ec072c8e28d6ee15812d&=&format=webp&quality=lossless&width=281&height=391"}
             ],
-            "image": "https://media.discordapp.net/attachments/1277686502335447171/1277686582773813339/Crate.png"
+            "image": "https://media.discordapp.net/attachments/1277686502335447171/1277686582773813339/Crate.png?ex=66ce11db&is=66ccc05b&hm=bbcb52f4c75f14960c0d8c727e8ea70f295e55b82eaef93c240e2207e10506fc&=&format=webp&quality=lossless&width=422&height=364"
         }
     }
-
-    card_back_url = "https://media.discordapp.net/attachments/1277686502335447171/1277688692600737863/pokemoncard-back.png"
+    card_back_url = "https://media.discordapp.net/attachments/1277686502335447171/1277688692600737863/pokemoncard-back.png?ex=66ce13d2&is=66ccc252&hm=478eeec046e895cc547077436e85f575181e274d25e6215904dcd99118b86e6e&=&format=webp&quality=lossless&width=902&height=551"
 
     @commands.command(name='buypack')
     async def buy_pack(self, ctx, pack_name: str):
         """Buy a pack of cards."""
-        db = get_db_connection()
-        cursor = db.cursor()
-
         if pack_name not in self.packs:
             await ctx.send(f"{ctx.author.mention}, that pack does not exist.")
             return
@@ -48,238 +45,119 @@ class PackSystem(commands.Cog):
 
         if user_currency >= pack_info["price"]:
             await self.bot.get_cog("EconomySystem").add_currency(ctx.author.id, -pack_info["price"])
-            cursor.execute("INSERT INTO user_packs (user_id, pack_name) VALUES ((SELECT id FROM users WHERE discord_id = %s), %s)", (ctx.author.id, pack_name))
-            db.commit()
+
+            with get_db_connection() as db:
+                with db.cursor() as cursor:
+                    cursor.execute("INSERT INTO user_packs (user_id, pack_name, purchase_date) VALUES ((SELECT id FROM users WHERE discord_id = %s), %s, NOW())", (ctx.author.id, pack_name))
+                    db.commit()
 
             await ctx.send(f"{ctx.author.mention}, you bought a {pack_name} pack for {pack_info['price']} currency! Use `!openpack {pack_name}` to open it.")
-
         else:
             await ctx.send(f"{ctx.author.mention}, you don't have enough currency to buy this pack.")
 
-        cursor.close()
-        db.close()
-
     @commands.command(name='openpack')
     async def open_pack(self, ctx, pack_name: str):
-        """Open a purchased pack and receive cards."""
-        db = get_db_connection()
-        cursor = db.cursor(dictionary=True)
+        """Open a purchased pack and receive a single card."""
+        with get_db_connection() as db:
+            with db.cursor(dictionary=True) as cursor:
+                cursor.execute("SELECT * FROM user_packs WHERE user_id = (SELECT id FROM users WHERE discord_id = %s) AND pack_name = %s", (ctx.author.id, pack_name))
+                pack = cursor.fetchone()
 
-        cursor.execute("SELECT * FROM user_packs WHERE user_id = (SELECT id FROM users WHERE discord_id = %s) AND pack_name = %s", (ctx.author.id, pack_name))
-        pack = cursor.fetchone()
+                if not pack:
+                    await ctx.send(f"{ctx.author.mention}, you don't have any {pack_name} packs to open.")
+                    return
 
-        if not pack:
-            await ctx.send(f"{ctx.author.mention}, you don't have any {pack_name} packs to open.")
-            return
+                pack_info = self.packs.get(pack_name)
 
-        pack_info = self.packs.get(pack_name)
-        cards_obtained = self.draw_cards(pack_info["cards"])
+                # Apply temporary boost if applicable
+                if ctx.author.id in self.temporary_boosts:
+                    card = self.draw_boosted_card(pack_info["cards"])
+                    del self.temporary_boosts[ctx.author.id]  # Remove boost after use
+                else:
+                    card = self.draw_card(pack_info["cards"])
 
-        # Debug: Show the number of cards obtained
-        print(f"Cards obtained: {len(cards_obtained)}")
-        print(f"Cards obtained: {cards_obtained}")
+                # Save the card to the user's collection
+                with db.cursor() as cursor:
+                    self.save_card_to_collection(ctx.author.id, card, pack_name, cursor)
+                    db.commit()
 
-        # Filter good and bad cards
-        good_cards, bad_cards = self.filter_good_bad_cards(cards_obtained)
+                # Delete the opened pack
+                with db.cursor() as cursor:
+                    cursor.execute("DELETE FROM user_packs WHERE id = %s", (pack["id"],))
+                    db.commit()
 
-        # Debug: Show how many good and bad cards were filtered
-        print(f"Good cards: {len(good_cards)}, Bad cards: {len(bad_cards)}")
-        print(f"Good cards: {good_cards}")
-        print(f"Bad cards: {bad_cards}")
+        # Show the pack with a button to open it
+        await self.show_pack_opening(ctx, card, pack_name)
 
-        # Show pack opening animation first
-        await self.show_pack_opening(ctx, pack_name)
+    def draw_card(self, cards):
+        """Draw a single card from the pack based on hit percentage."""
+        return random.choices(cards, weights=[card['hit_percentage'] for card in cards], k=1)[0]
 
-        if not good_cards:
-            print("No good cards were drawn!")
+    def draw_boosted_card(self, cards):
+        """Draw a single card with increased odds for rare cards."""
+        adjusted_weights = [
+            max(1, int(card['hit_percentage'] * 2)) if card['hit_percentage'] < 10 else card['hit_percentage']
+            for card in cards
+        ]
+        return random.choices(cards, weights=adjusted_weights, k=1)[0]
 
-            # Sell bad cards and refund the user
-            total_value = sum(card['price'] for card in bad_cards)
-            await self.bot.get_cog("EconomySystem").add_currency(ctx.author.id, total_value)
-            await ctx.send(f"{ctx.author.mention}, you didn't get any good cards in this pack, so we've refunded you {total_value} currency for the cards pulled.")
-            
-            # Reveal all bad cards as well before exiting
-            for card in bad_cards:
-                await self.reveal_card_suspense(ctx, card)
+    def save_card_to_collection(self, user_id, card, pack_name, cursor):
+        """Save the card to the user's collection in the cards table."""
+        cursor.execute("""
+            INSERT INTO cards (owner_id, card_name, image_url, set_name, market_price)
+            VALUES ((SELECT id FROM users WHERE discord_id = %s), %s, %s, %s, %s)
+        """, (user_id, card['name'], card['image_url'], pack_name, card['price']))
 
-            cursor.close()
-            db.close()
-            return
+    async def show_pack_opening(self, ctx, card, pack_name):
+        """Simulate pack opening with a button to reveal the card."""
+        pack_image = self.packs[pack_name]["image"]
+        embed = discord.Embed(title="Your pack is ready to be opened!", color=discord.Color.green())
+        embed.set_image(url=pack_image)
+        message = await ctx.send(embed=embed)
 
-        # Save all cards to the user's collection
-        self.save_cards_to_collection(ctx.author.id, good_cards + bad_cards, pack_name, cursor)
+        # Add a button for the user to reveal the card
+        button = Button(label="Open Pack", style=discord.ButtonStyle.primary)
 
-        cursor.execute("DELETE FROM user_packs WHERE user_id = (SELECT id FROM users WHERE discord_id = %s) AND pack_name = %s LIMIT 1", (ctx.author.id, pack_name))
-        db.commit()
+        async def button_callback(interaction):
+            if interaction.user == ctx.author:
+                # Show the back of the card first
+                embed.title = "Revealing your card..."
+                embed.set_image(url=self.card_back_url)
+                await interaction.response.edit_message(embed=embed, view=None)
+                await asyncio.sleep(2)
 
-        # Debug: Before revealing cards
-        print("Starting to reveal cards...")
+                # If the card is rare, play the special animation
+                if card['hit_percentage'] <= 10:
+                    await ctx.send(file=discord.File("C:/Users/AZA Custom Builds/Documents/GitHub/Packmon/rare_glow_sparkle_animation.mp4"))
+                    await asyncio.sleep(2)
 
-        # Simulate a scroll effect for the good cards
-        await self.simulate_scroll(ctx, good_cards)
+                # Reveal the actual card
+                embed.title = f"🌟 {card['name']} 🌟"
+                embed.description = f"Hit Percentage: {card['hit_percentage']}%\nValue: {card['price']} currency"
+                embed.set_image(url=card['image_url'])
+                await interaction.edit_original_response(embed=embed)
+                await self.announce_rare_card(ctx, card)
+            else:
+                await interaction.response.send_message("This is not your pack to open!", ephemeral=True)
 
-        cursor.close()
-        db.close()
+        button.callback = button_callback
 
-    async def simulate_scroll(self, ctx, good_cards):
-        """Simulate a scrolling effect through the cards and land on one."""
-        scroll_cycles = 10  # Number of times to scroll through the cards
-        scroll_speed = 0.1  # Delay between scrolls
-
-        # Select a random card from good cards or a random card from bad cards if no good cards
-        card_to_land_on = random.choice(good_cards)
-
-        # Simulate the scroll effect
-        for _ in range(scroll_cycles):
-            card = random.choice(good_cards)
-            embed = discord.Embed(
-                title=f"Scrolling...",
-                description=f"🎴 {card['name']}",
-                color=discord.Color.blue()
-            )
-            embed.set_image(url=card['image_url'])
-            await ctx.send(embed=embed)
-            await asyncio.sleep(scroll_speed)
-        
-        # Land on the final card
-        await self.grand_reveal_card(ctx, card_to_land_on)
-
-    def draw_cards(self, cards):
-        """Draw cards from the pack based on hit percentage."""
-        drawn_cards = []
-        for card in cards:
-            if random.randint(1, 100) <= card['hit_percentage']:
-                drawn_cards.append(card)
-        return drawn_cards
-
-    def filter_good_bad_cards(self, cards):
-        """Filter out good and bad cards based on hit percentage."""
-        threshold = 10  # Hit percentage below this is considered good
-        good_cards = [card for card in cards if card['hit_percentage'] <= threshold]
-        bad_cards = [card for card in cards if card['hit_percentage'] > threshold]
-        return good_cards, bad_cards
-
-    def save_cards_to_collection(self, user_id, cards, pack_name, cursor):
-        """Save cards to the user's collection in the cards table."""
-        for card in cards:
-            cursor.execute("""
-                INSERT INTO cards (owner_id, card_name, image_url, set_name, market_price)
-                VALUES ((SELECT id FROM users WHERE discord_id = %s), %s, %s, %s, %s)
-            """, (user_id, card['name'], card['image_url'], pack_name, card['price']))
-    
-    async def reveal_card_suspense(self, ctx, card):
-        """Reveal a card with a suspenseful delay."""
-        embed = discord.Embed(title="Revealing your card...", color=discord.Color.blue())
-        embed.set_image(url=self.card_back_url)
-
-        try:
-            message = await ctx.send(embed=embed)
-            await asyncio.sleep(2)  # Pause for suspense
-
-            embed = discord.Embed(
-                title="It's coming...",
-                color=discord.Color.orange()
-            )
-            await message.edit(embed=embed)
-
-            await asyncio.sleep(1)  # Another short pause
-
-            embed = discord.Embed(
-                title=card['name'],
-                description=f"Hit Percentage: {card['hit_percentage']}%\nValue: {card['price']} currency",
-                color=discord.Color.gold() if card['hit_percentage'] <= 10 else discord.Color.blue()
-            )
-            embed.set_image(url=card['image_url'])
-            await message.edit(embed=embed)
-
-        except discord.HTTPException as e:
-            print(f"Discord HTTPException: {e}")
-        except Exception as e:
-            print(f"Error in reveal_card_suspense: {e}")
-
-    async def grand_reveal_card(self, ctx, card):
-        """Showcase the rarest card with a special grand reveal."""
-        await ctx.send("✨ **Get ready...** ✨")
-        await asyncio.sleep(2)
-        await ctx.send("🌟 **Here comes the rarest card in your pack!** 🌟")
-        await asyncio.sleep(2)
-        await self.reveal_rare_card(ctx, card)
-
-    async def reveal_rare_card(self, ctx, card):
-        """Reveal a rare card with a special effect."""
-
-        # Step 1: Send the animation video to build hype
-        animation_file_path = "C:/Users/AZA Custom Builds/Documents/GitHub/Packmon/rare_glow_sparkle_animation.png"  # Replace with the path to your animation file
-        animation_file = discord.File(animation_file_path, filename="rare_glow_sparkle_animation.mp4")
-        
-        await ctx.send(file=animation_file)
-        
-        # Step 2: Add a short delay to ensure the animation plays before the card is revealed
-        await asyncio.sleep(5)  # Adjust timing based on video length
-
-        # Step 3: Reveal the rare card with the embed
-        embed = discord.Embed(
-            title=f"🌟 {card['name']} 🌟",
-            description=f"Hit Percentage: {card['hit_percentage']}%\nValue: {card['price']} currency",
-            color=discord.Color.gold()
-        )
-        embed.set_image(url=card['image_url'])
-        embed.set_thumbnail(url="C:/Users/AZA Custom Builds/Documents/GitHub/Packmon/Images/Lightball.png")
-        await ctx.send(embed=embed)
-        
-        # Step 4: Announce the rare card
-        await self.announce_rare_card(ctx, card)
+        view = View()
+        view.add_item(button)
+        await message.edit(view=view)
 
     async def announce_rare_card(self, ctx, card):
         """Announce a rare card pull in the channel."""
-        announcement_message = await ctx.send(f"🎉 **{ctx.author.name} just pulled a super rare {card['name']} worth {card['price']} currency!** 🎉")
+        announcement_message = await ctx.send(f"🎉 **{ctx.author.name} just pulled a super rare {card['name']}!** 🎉")
         await announcement_message.add_reaction("✨")
         await announcement_message.add_reaction("🎉")
 
-    async def show_pack_opening(self, ctx, pack_name):
-        """Simulate pack opening with a simple sequence."""
-        pack_opening_images = [
-            "https://media.discordapp.net/attachments/1277686502335447171/1278204323586637854/crate_fully_open.png?ex=66cff40a&is=66cea28a&hm=639c46900cda21e734d41393827b9085ef35dade5fa503ab3b90cf3194358b7f&=&format=webp&quality=lossless&width=422&height=364",
-            "https://media.discordapp.net/attachments/1277686502335447171/1278204323800682599/crate_partially_open.png?ex=66cff40a&is=66cea28a&hm=7463c2b6ccf27f821d0a05ab857f80a5e83bb897b28758ff1ec90483afac074c&=&format=webp&quality=lossless&width=422&height=364",
-            "https://media.discordapp.net/attachments/1277686502335447171/1278204323326857227/crate_closed.png?ex=66cff40a&is=66cea28a&hm=d132df7150d936f1c95443a64b1b989ea38b6d30923be2124b0e9ccfb75a5cd9&=&format=webp&quality=lossless&width=422&height=364"
-        ]
-
-        try:
-            message = await ctx.send(embed=discord.Embed(title="Opening your pack..."))
-            for image in pack_opening_images:
-                embed = discord.Embed(title="Opening your pack...", color=discord.Color.blue())
-                embed.set_image(url=image)
-                await message.edit(embed=embed)
-                await asyncio.sleep(0.5)  # Adjust timing for pack opening speed
-
-            pack_image = self.packs[pack_name]["image"]
-            embed = discord.Embed(title="Your pack is now open!", color=discord.Color.green())
-            embed.set_image(url=pack_image)
-            await message.edit(embed=embed)
-
-        except discord.HTTPException as e:
-            print(f"Discord HTTPException during pack opening: {e}")
-        except Exception as e:
-            print(f"Error in show_pack_opening: {e}")
-
-    @commands.command(name='packs')
-    async def view_packs(self, ctx):
-        """View available packs in the store."""
-        embed = discord.Embed(
-            title="Available Packs",
-            description="Here are the packs you can purchase:",
-            color=discord.Color.blue()
-        )
-
-        for pack_name, pack_info in self.packs.items():
-            embed.add_field(
-                name=f"{pack_name.capitalize()} Pack",
-                value=f"Price: {pack_info['price']} currency\nContains: {', '.join([card['name'] for card in pack_info['cards']])}",
-                inline=False
-            )
-            embed.set_thumbnail(url=pack_info['image'])
-
-        await ctx.send(embed=embed)
+    @commands.command(name='boostodds')
+    @commands.has_permissions(administrator=True)
+    async def boost_odds(self, ctx, user: discord.Member):
+        """Temporarily boost a user's odds for drawing a rare card (Admin only)."""
+        self.temporary_boosts[user.id] = True
+        await ctx.send(f"{user.mention}'s odds of pulling a rare card have been temporarily boosted!")
 
 # Setup function to add the cog to the bot
 async def setup(bot):
