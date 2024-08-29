@@ -31,8 +31,9 @@ class PackSystem(commands.Cog):
             "image": "https://media.discordapp.net/attachments/1277686502335447171/1277686582773813339/Crate.png?ex=66ce11db&is=66ccc05b&hm=bbcb52f4c75f14960c0d8c727e8ea70f295e55b82eaef93c240e2207e10506fc&=&format=webp&quality=lossless&width=422&height=364"
         }
     }
-    card_back_url = "https://media.discordapp.net/attachments/1277686502335447171/1277688692600737863/pokemoncard-back.png?ex=66ce13d2&is=66ccc252&hm=478eeec046e895cc547077436e85f575181e274d25e6215904dcd99118b86e6e&=&format=webp&quality=lossless&width=902&height=551"
 
+    card_back_url = "https://media.discordapp.net/attachments/1277686502335447171/1277688692600737863/pokemoncard-back.png?ex=66ce13d2&is=66ccc252&hm=478eeec046e895cc547077436e85f575181e274d25e6215904dcd99118b86e6e&=&format=webp&quality=lossless&width=902&height=551"
+    
     @commands.command(name='buypack')
     async def buy_pack(self, ctx, pack_name: str):
         """Buy a pack of cards."""
@@ -62,29 +63,33 @@ class PackSystem(commands.Cog):
             with db.cursor(dictionary=True) as cursor:
                 cursor.execute("SELECT * FROM user_packs WHERE user_id = (SELECT id FROM users WHERE discord_id = %s) AND pack_name = %s", (ctx.author.id, pack_name))
                 pack = cursor.fetchone()
+                
+                # Explicitly clear any remaining results
+                cursor.fetchall()
 
                 if not pack:
                     await ctx.send(f"{ctx.author.mention}, you don't have any {pack_name} packs to open.")
                     return
 
-                pack_info = self.packs.get(pack_name)
+        # Fetch pack info outside of the DB connection
+        pack_info = self.packs.get(pack_name)
 
-                # Apply temporary boost if applicable
-                if ctx.author.id in self.temporary_boosts:
-                    card = self.draw_boosted_card(pack_info["cards"])
-                    del self.temporary_boosts[ctx.author.id]  # Remove boost after use
-                else:
-                    card = self.draw_card(pack_info["cards"])
+        # Apply temporary boost if applicable
+        if ctx.author.id in self.temporary_boosts:
+            card = self.draw_boosted_card(pack_info["cards"])
+            del self.temporary_boosts[ctx.author.id]  # Remove boost after use
+        else:
+            card = self.draw_card(pack_info["cards"])
 
+        with get_db_connection() as db:
+            with db.cursor() as cursor:
                 # Save the card to the user's collection
-                with db.cursor() as cursor:
-                    self.save_card_to_collection(ctx.author.id, card, pack_name, cursor)
-                    db.commit()
+                self.save_card_to_collection(ctx.author.id, card, pack_name, cursor)
+                db.commit()
 
                 # Delete the opened pack
-                with db.cursor() as cursor:
-                    cursor.execute("DELETE FROM user_packs WHERE id = %s", (pack["id"],))
-                    db.commit()
+                cursor.execute("DELETE FROM user_packs WHERE id = %s", (pack["id"],))
+                db.commit()
 
         # Show the pack with a button to open it
         await self.show_pack_opening(ctx, card, pack_name)
@@ -158,6 +163,17 @@ class PackSystem(commands.Cog):
         """Temporarily boost a user's odds for drawing a rare card (Admin only)."""
         self.temporary_boosts[user.id] = True
         await ctx.send(f"{user.mention}'s odds of pulling a rare card have been temporarily boosted!")
+
+    @commands.command(name='viewpacks')
+    async def view_packs(self, ctx):
+        """View available packs and their details."""
+        embed = discord.Embed(title="Available Packs", color=discord.Color.blue())
+        for pack_name, pack_info in self.packs.items():
+            cards_list = "\n".join([f"- {card['name']} (Hit Chance: {card['hit_percentage']}%)" for card in pack_info['cards']])
+            embed.add_field(name=f"{pack_name.capitalize()} Pack", value=f"Price: {pack_info['price']} currency\nCards:\n{cards_list}", inline=False)
+            embed.set_thumbnail(url=pack_info['image'])
+
+        await ctx.send(embed=embed)
 
 # Setup function to add the cog to the bot
 async def setup(bot):

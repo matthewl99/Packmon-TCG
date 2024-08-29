@@ -3,6 +3,10 @@ import mysql.connector
 from discord.ext import commands
 from discord.ui import Button, View
 from .CardsMain import get_db_connection
+import asyncio
+from PIL import Image
+import requests
+from io import BytesIO
 
 class ShowcaseSystem(commands.Cog):
     def __init__(self, bot):
@@ -103,7 +107,122 @@ class ShowcaseSystem(commands.Cog):
         for button in buttons.children:
             button.callback = button_callback
 
-    # Other commands remain the same
+    @commands.command(name='addcard')
+    @commands.has_permissions(administrator=True)
+    async def addcard(self, ctx):
+        """Guided input for adding a card with a merged front and back image."""
+        
+        def check(message):
+            return message.author == ctx.author and message.channel == ctx.channel
+
+        card_details = {}
+
+        async def prompt_for_input(prompt):
+            """Prompt the user for input and delete the message after processing."""
+            await ctx.send(prompt, delete_after=60)
+            try:
+                msg = await self.bot.wait_for('message', check=check, timeout=60)
+                await msg.delete()
+                return msg.content
+            except asyncio.TimeoutError:
+                await ctx.send("You took too long to respond! Please start over.", delete_after=10)
+                return None
+
+        # Step 1: Ask for the card category
+        card_details['category'] = await prompt_for_input("Please enter the card category (e.g., Marvel, Sports):")
+        if card_details['category'] is None: return
+
+        # Step 2: Ask for the card name
+        card_details['card_name'] = await prompt_for_input("Please enter the card number/name:")
+        if card_details['card_name'] is None: return
+
+        # Step 3: Ask for the set name
+        card_details['set_name'] = await prompt_for_input("Please enter the set name:")
+        if card_details['set_name'] is None: return
+
+        # Step 4: Ask for the character/player name
+        card_details['character'] = await prompt_for_input("Please enter the character or player name:")
+        if card_details['character'] is None: return
+
+        # Step 5: Ask for the serial number
+        card_details['serial_number'] = await prompt_for_input("Please enter the serial number (or type 'N/A' if none):")
+        if card_details['serial_number'] is None: return
+
+        # Step 6: Ask for the rarity
+        card_details['rarity'] = await prompt_for_input("Please enter the rarity (e.g., Level 5, Ultra Rare):")
+        if card_details['rarity'] is None: return
+
+        # Step 7: Ask for the market price
+        card_details['market_price'] = await prompt_for_input("Please enter the market price (e.g., 5.00):")
+        if card_details['market_price'] is None: return
+
+        # Step 8: Ask for the front image URL
+        card_details['front_image_url'] = await prompt_for_input("Please enter the front image URL:")
+        if card_details['front_image_url'] is None: return
+
+        # Step 9: Ask for the back image URL
+        card_details['back_image_url'] = await prompt_for_input("Please enter the back image URL:")
+        if card_details['back_image_url'] is None: return
+        
+        # Download the images
+        try:
+            response_front = requests.get(card_details['front_image_url'])
+            response_back = requests.get(card_details['back_image_url'])
+
+            img_front = Image.open(BytesIO(response_front.content))
+            img_back = Image.open(BytesIO(response_back.content))
+
+            # Combine the images side by side
+            total_width = img_front.width + img_back.width
+            max_height = max(img_front.height, img_back.height)
+
+            combined_img = Image.new('RGB', (total_width, max_height))
+            combined_img.paste(img_front, (0, 0))
+            combined_img.paste(img_back, (img_front.width, 0))
+
+            # Save the combined image to a BytesIO object
+            combined_image_io = BytesIO()
+            combined_img.save(combined_image_io, format='PNG')
+            combined_image_io.seek(0)
+
+            # Create a discord.File object from the combined image
+            file = discord.File(fp=combined_image_io, filename="combined_card.png")
+        except Exception as e:
+            await ctx.send(f"Failed to process images: {e}", delete_after=10)
+            return
+
+        # Create the embed
+        theme = self.get_theme(card_details['category'])
+        
+        embed = discord.Embed(
+            title=f"{theme['icon']} {card_details['card_name']}", 
+            description=f"Set: {card_details['set_name']}", 
+            color=theme['color']
+        )
+        
+        embed.add_field(name="**Category**", value=f"{card_details['category']}", inline=True)
+        embed.add_field(name="**Character**", value=f"{card_details['character']}", inline=True)
+        embed.add_field(name="**Serial Number**", value=f"{card_details['serial_number']}", inline=True)
+        embed.add_field(name="⭐ **Rarity**", value=f"*{card_details['rarity']}*", inline=True)
+        embed.add_field(name="💲 **Market Price**", value=f"${card_details['market_price']}", inline=True)
+
+        # Set the combined image in the embed
+        embed.set_image(url="attachment://combined_card.png")
+        
+        # Footer with a category-specific message
+        embed.set_footer(text=f"{theme['footer']} - Card added on {ctx.message.created_at.strftime('%B %d, %Y')}")
+        
+        # Send the embed to the channel
+        await ctx.send(embed=embed, file=file)
+
+    def get_theme(self, category):
+        """Get the theme details based on the category."""
+        themes = {
+            "Marvel": {"icon": "🦸‍♂️", "color": discord.Color.red(), "footer": "Marvel Collection"},
+            "Sports": {"icon": "🏀", "color": discord.Color.blurple(), "footer": "Sports Collection"},
+            # Add more themes as needed
+        }
+        return themes.get(category, {"icon": "🎴", "color": discord.Color.blue(), "footer": "Card Collection"})
 
 # Setup function to add the cog to the bot
 async def setup(bot):
