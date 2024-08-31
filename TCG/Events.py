@@ -89,6 +89,35 @@ class Events(commands.Cog):
             cursor.close()
             db.close()
 
+    @commands.command(name='invite')
+    async def invite(self, ctx):
+        """Send the community invite message."""
+        embed = discord.Embed(
+            title="✮* 𝒯𝒽𝑒 𝐸𝑒𝓋𝑒𝑒 𝒟𝑒𝓃  *✮",
+            description=(
+                "············· ── ⋆⋅☆⋅⋆ ── ·············\n\n"
+                "Hiya Pals!\n"
+                "Come join TED and be a part of our amazing community! We have a fun hangout space to make new friends, "
+                "bully-free, and share laughter with one another! Can’t wait to have you join our family!\n\n"
+                "············· ── ⋆⋅☆⋅⋆ ── ·············\n"
+                "✧🍄˖°- S/V Sys Bots\n"
+                "✧🍄˖°- Bots for all Pokemon Switch games\n"
+                "✧🍄˖°- Variety of Giveaways\n"
+                "✧🍄˖°- Plenty of Eevee emotes!\n"
+                "✧🍄˖°- Active Staff!\n"
+                "✧🍄˖°- Poketwo Events\n"
+                "✧🍄˖°- Variety of giveaways that may include Nitro, Poketwo-themed events, S/V events, and more!\n"
+                "············· ── ⋆⋅☆⋅⋆ ── ·············\n"
+                "👇⬇️⬇️ • Join Now! • ⬇️⬇️👇\n"
+                "🌲 [Join The Eevee Den](https://discord.gg/the-eevee-den-778557967682502676) 🌲"
+            ),
+            color=discord.Color.orange()
+        )
+
+        embed.set_image(url="https://media.discordapp.net/attachments/1112549567683121153/1172914921944649748/The_Eevee_Den.gif?ex=66d28865&is=66d136e5&hm=fad2f068abdfbf22207af816d8c33e711e1e798fd8d31f929e3ebe210c4b366e&=&width=550&height=550")
+
+        await ctx.send(embed=embed)
+        
     @commands.command(name='completeachievement')
     async def complete_achievement(self, ctx, achievement_name: str):
         """Manually complete an achievement (admin-only command)."""

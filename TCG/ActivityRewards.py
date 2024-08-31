@@ -10,7 +10,7 @@ class ActivityRewards(commands.Cog):
     async def on_message(self, message):
         # Handle PokeTwo rewards
         if not message.author.bot:
-            if "correct answer" in message.content:  # Replace this condition based on how PokeTwo handles correct answers
+            if "Congratulations" in message.content:  # Replace this condition based on how PokeTwo handles correct answers
                 await self.award_poketwo_currency(message.author)
 
         # Handle MEE6 level-up rewards
