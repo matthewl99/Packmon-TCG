@@ -95,7 +95,7 @@ async def load_extensions():
 async def main():
     async with bot:
         await load_extensions()
-        await bot.start('MTI3NzQ1NTkyMDE1ODQ3NDI2MQ.Gybz7z.ISiKJnt_BmafQOkV-d82IkasYbw7RlPIxnUtwE')
+        await bot.start('EXPIREDCODE')
 
 if __name__ == "__main__":
     asyncio.run(main())
